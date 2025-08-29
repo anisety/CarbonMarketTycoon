@@ -18,7 +18,7 @@ public class GameManager : MonoBehaviour
     private void Update()
     {
         // Every second = 1 year in game
-        if (Time.frameCount % 60 == 0)
+        if (Time.frameCount % 60 == 0) 
         {
             UpdateTemperature();
             CheckForDisaster();
