@@ -1,25 +1,52 @@
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class CompanyManager : MonoBehaviour
 {
-    public void BuildFactory()
+    public static CompanyManager Instance;
+
+    public List<GameAsset> ownedAssets = new List<GameAsset>();
+
+    private void Awake()
     {
-        GameManager.Instance.profit += 500f;
-        GameManager.Instance.emissions += 50f;
+        if (Instance == null) Instance = this;
     }
 
-    public void BuildRenewable()
+    public void UpdateCompanyMetrics()
     {
-        GameManager.Instance.profit += 200f;
-        GameManager.Instance.emissions += 5f;
-    }
+        float yearlyProfit = 0;
+        float yearlyEmissions = 0;
 
-    public void BuyCarbonCredits()
-    {
-        if (GameManager.Instance.profit >= 300f)
+        foreach (var asset in ownedAssets)
         {
-            GameManager.Instance.profit -= 300f;
-            GameManager.Instance.emissions -= 20f;
+            yearlyProfit += asset.profitPerTurn;
+            yearlyEmissions += asset.emissionsPerTurn;
+        }
+
+        GameManager.Instance.AdjustMetrics(yearlyProfit, yearlyEmissions);
+    }
+
+    public bool BuyAsset(GameAsset asset)
+    {
+        if (GameManager.Instance.profit >= asset.cost)
+        {
+            GameManager.Instance.AdjustMetrics(-asset.cost, 0);
+            ownedAssets.Add(asset);
+            Debug.Log($"Purchased {asset.assetName} for ${asset.cost}");
+            return true;
+        }
+        Debug.LogWarning($"Not enough profit to buy {asset.assetName}");
+        return false;
+    }
+
+    public void SellAsset(GameAsset asset)
+    {
+        if (ownedAssets.Remove(asset))
+        {
+            float salePrice = asset.cost * 0.75f; // Sell for 75% of original cost
+            GameManager.Instance.AdjustMetrics(salePrice, 0);
+            Debug.Log($"Sold {asset.assetName} for ${salePrice}");
         }
     }
 }
